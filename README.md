@@ -25,7 +25,7 @@ The following is a very simple example of CRUD operations
 package main
 
 import (
-    _ "github.com/aerospike/aerospike-client-go"
+	"github.com/viant/dsc"
     _ "github.com/adrianwit/mgc"
 )
 
