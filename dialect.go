@@ -2,6 +2,7 @@ package mgc
 
 import (
 	"github.com/viant/dsc"
+	"reflect"
 )
 
 var maxRecordColumnScan = 20
@@ -14,33 +15,43 @@ func (d *dialect) GetKeyName(manager dsc.Manager, datastore, table string) strin
 	return key
 }
 
-func (d *dialect) GetColumns(manager dsc.Manager, datastore, table string) []string {
-	var result = make([]string, 0)
+func (d *dialect) GetColumns(manager dsc.Manager, datastore, table string) ([]dsc.Column, error) {
+	var result = make([]dsc.Column, 0)
 	connection, err := manager.ConnectionProvider().Get()
 	if err != nil {
-		return result
+		return result, err
 	}
 	defer connection.Close()
 	db, err := asDatabase(connection)
 	if err != nil {
-		return result
+		return result, err
 	}
 
 	inter := db.C(table).Find(nil).Iter()
 	var keys = make(map[string]bool)
 	record := make(map[string]interface{})
+	var types = make(map[string]reflect.Type)
+
 	var i = 0
 	//bit hacky, TODO change for map reduce and cache all update/inserts
-	for inter.Next(&result) && i < maxRecordColumnScan {
+	for inter.Next(&record) && i < maxRecordColumnScan {
 		for k := range record {
 			keys[k] = true
 		}
 		i++
 	}
-	for k := range keys {
-		result = append(result, k)
+	for k, v := range record {
+		types[k] = reflect.TypeOf(v)
 	}
-	return result
+
+	for k := range keys {
+		var typeName = ""
+		if val, ok := types[k];ok {
+			typeName = val.Name()
+		}
+		result = append(result, dsc.NewSimpleColumn(k, typeName))
+	}
+	return result, nil
 }
 
 func (d *dialect) DropTable(manager dsc.Manager, datastore string, table string) error {
