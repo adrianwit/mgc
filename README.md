@@ -1,10 +1,10 @@
 # Datastore Connectivity for MongoDB(mgc)
 
 
-[![Datastore Connectivity library for Aerospike in Go.](https://goreportcard.com/badge/github.com/adrianwit/mgc)](https://goreportcard.com/report/github.com/adrianwit/mgc)
+[![Datastore Connectivity library for MongoDB in Go.](https://goreportcard.com/badge/github.com/adrianwit/mgc)](https://goreportcard.com/report/github.com/adrianwit/mgc)
 [![GoDoc](https://godoc.org/github.com/adrianwit/mgc?status.svg)](https://godoc.org/github.com/adrianwit/mgc)
 
-This library is compatible with Go 1.5+
+This library is compatible with Go 1.10+
 
 Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes.
 
@@ -75,10 +75,6 @@ func main() {
   
 }
 ```
-
-## GoCover
-
-[![GoCover](https://gocover.io/github.com/adrianwit/mgc)](https://gocover.io/github.com/adrianwit/mgc)r
 
 <a name="License"></a>
 ## License

@@ -18,9 +18,9 @@ func TestManager(t *testing.T) {
 	//dsc.Logf = dsc.StdoutLogger
 
 	config, err := dsc.NewConfigWithParameters("mgc", "", "", map[string]interface{}{
-		"host":          "127.0.0.1",
-		"dbname":        "mydb",
-		"keyColumnName": "id",
+		"host":      "127.0.0.1",
+		"dbname":    "mydb",
+		"keyColumn": "id",
 	})
 	if !assert.Nil(t, err) {
 		return

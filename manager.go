@@ -9,14 +9,14 @@ import (
 )
 
 const (
-	pkColumnNameKey = "keyColumnName"
-	mongoIDKey      = "_id"
+	pkColumnKey = "keyColumn"
+	mongoIDKey  = "_id"
 )
 
 type config struct {
 	*dsc.Config
-	keyColumnName string
-	dbName        string
+	keyColumn string
+	dbName    string
 }
 
 type manager struct {
@@ -24,17 +24,25 @@ type manager struct {
 	config *config
 }
 
-func (m *manager) updatePKIfNeeded(record map[string]interface{}, replace bool) error {
-	if _, has := record[mongoIDKey]; has {
-		return nil
+func (m *manager) getKeyColumn(table string) string {
+	if keyColumn := m.config.GetString(table+"."+pkColumnKey, ""); keyColumn != "" {
+		return keyColumn
 	}
-	if id, has := record[m.config.keyColumnName]; has {
+	return m.config.keyColumn
+}
+
+func (m *manager) updatePKIfNeeded(table string, record map[string]interface{}, replace bool) {
+	if _, has := record[mongoIDKey]; has {
+		return
+	}
+	keyColumn := m.getKeyColumn(table)
+	if id, has := record[keyColumn]; has {
 		record[mongoIDKey] = id
 		if replace {
-			delete(record, m.config.keyColumnName)
+			delete(record, keyColumn)
 		}
 	}
-	return nil
+	return
 }
 
 func (m *manager) runInsert(db *mgo.Database, statement *dsc.DmlStatement, sqlParameters []interface{}) (err error) {
@@ -43,9 +51,7 @@ func (m *manager) runInsert(db *mgo.Database, statement *dsc.DmlStatement, sqlPa
 	if record, err = statement.ColumnValueMap(parameters); err != nil {
 		return err
 	}
-	if err = m.updatePKIfNeeded(record, false); err != nil {
-		return err
-	}
+	m.updatePKIfNeeded(statement.Table, record, false)
 	collection := db.C(statement.Table)
 	return collection.Insert(record)
 }
@@ -60,7 +66,7 @@ func (m *manager) runUpdate(db *mgo.Database, statement *dsc.DmlStatement, sqlPa
 	if err != nil {
 		return err
 	}
-	m.updatePKIfNeeded(criteria, true)
+	m.updatePKIfNeeded(statement.Table, criteria, true)
 	collection := db.C(statement.Table)
 	return collection.Update(criteria, record)
 }
@@ -90,7 +96,7 @@ func (m *manager) runDelete(db *mgo.Database, statement *dsc.DmlStatement, sqlPa
 	if err != nil {
 		return 0, err
 	}
-	m.updatePKIfNeeded(criteria, true)
+	m.updatePKIfNeeded(statement.Table, criteria, true)
 	info, err := collection.RemoveAll(criteria)
 	if err != nil {
 		return 0, err
@@ -157,7 +163,7 @@ func (m *manager) ReadAllOnWithHandlerOnConnection(connection dsc.Connection, SQ
 	if err != nil {
 		return err
 	}
-	m.updatePKIfNeeded(criteria, true)
+	m.updatePKIfNeeded(statement.Table, criteria, true)
 	collection := db.C(statement.Table)
 
 	if len(criteria) == 0 {
@@ -181,9 +187,9 @@ func (m *manager) ReadAllOnWithHandlerOnConnection(connection dsc.Connection, SQ
 }
 
 func newConfig(conf *dsc.Config) (*config, error) {
-	var keyColumnName = conf.GetString(pkColumnNameKey, mongoIDKey)
+	var keyColumnName = conf.GetString(pkColumnKey, mongoIDKey)
 	return &config{
-		Config:        conf,
-		keyColumnName: keyColumnName,
+		Config:    conf,
+		keyColumn: keyColumnName,
 	}, nil
 }

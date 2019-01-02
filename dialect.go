@@ -46,7 +46,7 @@ func (d *dialect) GetColumns(manager dsc.Manager, datastore, table string) ([]ds
 
 	for k := range keys {
 		var typeName = ""
-		if val, ok := types[k];ok {
+		if val, ok := types[k]; ok {
 			typeName = val.Name()
 		}
 		result = append(result, dsc.NewSimpleColumn(k, typeName))
