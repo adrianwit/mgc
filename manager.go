@@ -68,11 +68,20 @@ func (m *manager) runUpdate(db *mgo.Database, statement *dsc.DmlStatement, sqlPa
 	}
 	m.updatePKIfNeeded(statement.Table, criteria, true)
 	collection := db.C(statement.Table)
+	query := collection.Find(criteria)
+	previous := map[string]interface{}{}
+	if query.Iter().Next(&previous) {
+		for k, v := range previous {
+			if _, has := record[k]; has {
+				continue
+			}
+			record[k]=v
+		}
+	}
 	return collection.Update(criteria, record)
 }
 
 func (m *manager) criteria(statement *dsc.BaseStatement, parameters toolbox.Iterator) (map[string]interface{}, error) {
-
 	criteriaValues, err := statement.CriteriaValues(parameters)
 	if err != nil {
 		return nil, err

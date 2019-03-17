@@ -105,6 +105,12 @@ func (d *dialect) CanPersistBatch() bool {
 	return false
 }
 
+func (d *dialect) Ping(manager dsc.Manager) error {
+	connection, err := manager.ConnectionProvider().Get()
+	defer connection.Close()
+	return err
+}
+
 func newDialect() dsc.DatastoreDialect {
 	var resut dsc.DatastoreDialect = &dialect{dsc.NewDefaultDialect()}
 	return resut
