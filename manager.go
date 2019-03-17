@@ -75,7 +75,7 @@ func (m *manager) runUpdate(db *mgo.Database, statement *dsc.DmlStatement, sqlPa
 			if _, has := record[k]; has {
 				continue
 			}
-			record[k]=v
+			record[k] = v
 		}
 	}
 	return collection.Update(criteria, record)
